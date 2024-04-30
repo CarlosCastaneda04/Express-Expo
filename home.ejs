@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: url('https://cdn.dribbble.com/users/536689/screenshots/5436410/6.gif');
+            /* Reemplaza 'tu_imagen_de_fondo.jpg' con la URL o la ruta de tu imagen de fondo */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .container {
+            text-align: center;
+            padding: 40px;
+            background-color: rgba(255, 255, 255, 0.8);
+            /* Agrega un color de fondo semitransparente para hacer que el contenido sea legible */
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333333;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .username {
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px;
+        }
+
+        .button {
+            padding: 20px 40px;
+            margin: 0 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+        }
+
+        .button:hover {
+            transform: scale(1.1);
+            opacity: 0.8;
+        }
+
+        .edit-button {
+            background-color: #28a745;
+            color: #ffffff;
+        }
+
+        .delete-button {
+            background-color: #dc3545;
+            color: #ffffff;
+        }
+
+        .logout-button {
+            background-color: #007bff;
+            color: #ffffff;
+            margin-top: 10%;
+        }
+
+        /* Estilo de ventana de editar usuario*/
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Fondo opaco con opacidad */
+            z-index: 999;
+            /* Asegurar que esté por debajo de la ventana emergente */
+        }
+
+        .popup {
+            display: none;
+            /* Inicialmente oculta la ventana emergente */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 500px;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1000;
+            /* Asegurar que esté por encima del fondo opaco */
+        }
+
+        .popup-content {
+            color: #333;
+            /* Color de texto oscuro */
+        }
+
+        .popup-content input,
+        .popup-content button {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        /* Estilo cuando se muestra la ventana emergente */
+        .overlay.active,
+        .popup.active {
+            display: block;
+            /* Muestra tanto la ventana emergente como el fondo opaco cuando ambos tienen la clase active */
+        }
+
+
+        /* Estilo para el botón de cerrar */
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        /* Estilos para la alerta flotante */
+        .alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #f2f2f2;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+            display: none;
+            text-align: center;
+        }
+
+        .alert button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Bienvenido/a <span class="username">
+                <%= nombre_usuario %>
+            </span></h1>
+        <div class="button-container">
+            <button class="button edit-button" onclick="openEditUserPopup()">Editar Usuario</button>
+            <form action="/eliminar-usuario" method="post">
+                <button class="button delete-button">Eliminar Usuario</button>
+            </form>
+        </div>
+        <button class="button logout-button" onclick="cerrarSesion()">Cerrar Sesión</button>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div id="editUserPopup" class="popup">
+        <div class="popup-content">
+            <span class="close" onclick="closeEditUserPopup()">&times;</span>
+            <h2>Editar Usuario</h2>
+            <form id="editUserForm" action="/editar-usuario" method="post"
+                onsubmit="return confirm('¿Estás seguro de que deseas modificar tus datos?');">
+                <div>
+                    <label for="nombre_usuario">Nombre de Usuario:</label>
+                    <input type="text" id="nombre_usuario" name="nombre_usuario" value="<%= nombre_usuario %>" required>
+                </div>
+                <div>
+                    <label for="correo_electronico">Correo Electrónico:</label>
+                    <input type="email" id="correo_electronico" name="correo_electronico"
+                        value="<%= correo_electronico %>" required>
+                </div>
+                <div>
+                    <label for="contraseña">Nueva Contraseña:</label>
+                    <input type="password" id="contraseña" name="contraseña" placeholder="Nueva contraseña">
+                </div>
+                <div>
+                    <input type="checkbox" id="confirmar-modificacion" onclick="validarModificacion(event)"> Confirmar
+                    Modificación
+                </div>
+                <button type="submit" id="boton-modificar" disabled>Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Alerta flotante -->
+    <div class="alert" id="alertBox">
+        <p>Usuario eliminado exitosamente</p>
+        <button onclick="cerrarAlerta()">OK</button>
+    </div>
+    <!-- Agrega el siguiente script en tu archivo home.ejs -->
+    <script>
+        // Función para manejar la solicitud de eliminación de usuario
+        const eliminarUsuario = async () => {
+            try {
+                const response = await fetch('/eliminar-usuario', {
+                    method: 'POST',
+                });
+
+                if (!response.ok) {
+                    throw new Error('No se pudo eliminar el usuario');
+                }
+
+                // Muestra el mensaje de éxito
+                const messageContainer = document.getElementById('message-container');
+                messageContainer.innerHTML = '<p class="success-message">Usuario eliminado exitosamente</p>';
+
+                // Redirige al usuario a la página de inicio de sesión después de 2 segundos
+                setTimeout(() => {
+                    window.location.href = '/inicio-sesion.html';
+                }, 2000);
+            } catch (error) {
+                console.error('Error al eliminar usuario:', error);
+                alert('Error al eliminar usuario');
+            }
+        };
+    </script>
+
+    <script>
+        function cerrarSesion() {
+            // Redirigir al usuario al iniciar sesión
+            window.location.href = "/inicio-sesion";
+        }
+    </script>
+    <script>
+        function openEditUserPopup() {
+            document.getElementById('overlay').classList.add('active'); // Mostrar el fondo opaco
+            document.getElementById('editUserPopup').classList.add('active'); // Mostrar la ventana emergente
+        }
+
+        function closeEditUserPopup() {
+            document.getElementById('overlay').classList.remove('active'); // Ocultar el fondo opaco
+            document.getElementById('editUserPopup').classList.remove('active'); // Ocultar la ventana emergente
+        }
+
+
+        function validarModificacion(event) {
+            const checkbox = document.getElementById('confirmar-modificacion');
+            const botonModificar = document.getElementById('boton-modificar');
+
+            botonModificar.disabled = !checkbox.checked;
+        }
+    </script>
+
+
+
+    <script>
+        document.querySelector('.delete-button').addEventListener('click', async (event) => {
+            event.preventDefault();
+
+            try {
+                const response = await fetch('/eliminar-usuario', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al eliminar usuario');
+                }
+
+                const responseData = await response.json();
+                mostrarAlerta(responseData.message);
+            } catch (error) {
+                console.error('Error al eliminar usuario:', error);
+            }
+        });
+
+        // Función para mostrar la alerta flotante
+        function mostrarAlerta(message) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.querySelector('p').textContent = message;
+            alertBox.style.display = 'block';
+        }
+
+        // Función para cerrar la alerta flotante y redirigir a iniciar sesión
+        function cerrarAlerta() {
+            document.getElementById('alertBox').style.display = 'none';
+            window.location.href = '/inicio-sesion';
+        }
+    </script>
+
+</body>
+
+</html>
